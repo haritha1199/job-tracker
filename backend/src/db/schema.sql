@@ -8,3 +8,10 @@ CREATE TABLE applications (
   salary_range TEXT,
   created_at TIMESTAMP DEFAULT now()
 )
+
+CREATE TABLE users(
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  email TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT now()
+)

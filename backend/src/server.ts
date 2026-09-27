@@ -1,13 +1,17 @@
 import express from "express";
+import bcrypt from 'bcrypt';
+import jwt from "jsonwebtoken";
 import { getAllApplications, getApplicationByID, createApplication, updateApplication, deleteApplication } from "./db/applications";
+import { requireAuth } from "./middleware/auth";
+import { createUser, findUserByEmail } from "./db/users";
 const app = express();
 app.use(express.json());
 
 app.get('/health', (req, res) => {
-  res.send("Works fine");
+  res.json("Works fine");
 });
 
-app.get('/applications', async (req, res) => {
+app.get('/applications', requireAuth, async (req, res) => {
   try {
     const applications = await getAllApplications()
     res.status(200).json(applications)
@@ -69,6 +73,45 @@ app.delete('/applications/:id', async (req, res) => {
     res.status(500).json({ error: err instanceof Error ? err.message : 'Unknown error' });
   }
 });
+
+app.post('/auth/signup', async (req, res) => {
+  try {
+    const {email, password} = req.body;
+    const hash = await bcrypt.hash(password, 10);
+    const createdUser = await createUser(email, hash);
+    const {password_hash, ...safeUser} = createdUser;
+    res.status(201).json(safeUser);
+  }
+  catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Unknown error' });
+  }
+});
+
+app.post('/auth/login', async (req, res) => {
+  try {
+    const {email, password} = req.body;
+    const user = await findUserByEmail(email);
+
+    if(user === undefined)
+      res.status(401).json('invalid credentials');
+    else {
+      if(! await bcrypt.compare(password, user.password_hash)) {
+        res.status(401).json('invalid credentials');
+      }
+      else {
+        const token = jwt.sign(
+          {id: user.id, email: user.email},
+          process.env.JWT_SECRET!,
+          {expiresIn: '1h'}
+        );
+        res.status(200).json({token});
+      }
+    }
+  }
+  catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Unknown error' });
+  }
+})
 
 app.listen(3000, () => {
   console.log("server is running on port 3000");
