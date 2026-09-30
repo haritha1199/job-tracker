@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { error } from "node:console";
+import type { AuthPayload } from "../types/express";
 
 export function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -11,10 +11,10 @@ export function requireAuth(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-    req.user = decoded;
+    req.user = decoded as AuthPayload;
     next();
   }
   catch (err) {
     res.status(401).json({error: 'invalid or expired token'});
   }
-}
+} 

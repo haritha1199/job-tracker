@@ -13,7 +13,7 @@ app.get('/health', (req, res) => {
 
 app.get('/applications', requireAuth, async (req, res) => {
   try {
-    const applications = await getAllApplications()
+    const applications = await getAllApplications(req.user!.id)
     res.status(200).json(applications)
   }
   catch (err) {
@@ -21,9 +21,9 @@ app.get('/applications', requireAuth, async (req, res) => {
   }
 });
 
-app.get('/applications/:id', async (req, res) => {
+app.get('/applications/:id', requireAuth, async (req, res) => {
   try {
-    const application = await getApplicationByID(Number(req.params.id));
+    const application = await getApplicationByID(Number(req.params.id), req.user!.id);
     if (application === undefined)
       res.status(404).json('id not found');
     else
@@ -34,9 +34,9 @@ app.get('/applications/:id', async (req, res) => {
   }
 });
 
-app.post('/applications', async (req, res) => {
+app.post('/applications', requireAuth, async (req, res) => {
   try {
-    const createdApplication = await createApplication(req.body.company, req.body.role, req.body.status, req.body.dateApplied, req.body.link, req.body.salaryRange)
+    const createdApplication = await createApplication(req.user!.id, req.body.company, req.body.role, req.body.status, req.body.dateApplied, req.body.link, req.body.salaryRange)
     res.status(201).json(createdApplication);
   }
   catch (err) {
@@ -44,9 +44,9 @@ app.post('/applications', async (req, res) => {
   }
 });
 
-app.put('/applications/:id', async (req, res) => {
+app.put('/applications/:id', requireAuth, async (req, res) => {
   try {
-    const updatedApplication = await updateApplication(Number(req.params.id), req.body.company, req.body.role, req.body.status, req.body.dateApplied, req.body.link, req.body.salaryRange);
+    const updatedApplication = await updateApplication(req.user!.id, Number(req.params.id), req.body.company, req.body.role, req.body.status, req.body.dateApplied, req.body.link, req.body.salaryRange);
 
     if (updatedApplication === undefined)
       res.status(404).json('id not found');
@@ -58,9 +58,9 @@ app.put('/applications/:id', async (req, res) => {
   }
 });
 
-app.delete('/applications/:id', async (req, res) => {
+app.delete('/applications/:id', requireAuth, async (req, res) => {
   try {
-    const result = await deleteApplication(Number(req.params.id));
+    const result = await deleteApplication(Number(req.params.id), req.user!.id);
     if (result === 1) {
       res.status(200).send('deleted successfully');
     } else if (result === 0) {
