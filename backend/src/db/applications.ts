@@ -5,7 +5,7 @@ export async function getAllApplications(userId: number) {
   return result.rows;
 }
 
-export async function getApplicationByID(id: number, userId: number) {
+export async function getApplicationByID(userId: number, id: number) {
   const result = await pool.query('SELECT * FROM applications WHERE id = $1 AND user_id = $2', [id, userId]);
   return result.rows[0];
 }
@@ -37,7 +37,12 @@ export async function updateApplication(
   return result.rows[0];
 }
 
-export async function deleteApplication (id: number, userId: number) {
+export async function deleteApplication (userId: number, id: number) {
   const result = await pool.query('DELETE FROM applications WHERE id = $1 AND user_id = $2', [id, userId]);
   return result.rowCount;
+}
+
+export async function updateResumePath(userId: number, id:number, resumePath: string) {
+  const result = await pool.query('UPDATE applications SET resume_path =$1 WHERE id = $2 AND user_id = $3 RETURNING *', [resumePath, id, userId]);
+  return result.rows[0];
 }

@@ -1,9 +1,10 @@
 import express from "express";
 import bcrypt from 'bcrypt';
 import jwt from "jsonwebtoken";
-import { getAllApplications, getApplicationByID, createApplication, updateApplication, deleteApplication } from "./db/applications";
+import { getAllApplications, getApplicationByID, createApplication, updateApplication, deleteApplication, updateResumePath } from "./db/applications";
 import { requireAuth } from "./middleware/auth";
 import { createUser, findUserByEmail } from "./db/users";
+import { upload } from "./middleware/upload";
 const app = express();
 app.use(express.json());
 
@@ -23,7 +24,7 @@ app.get('/applications', requireAuth, async (req, res) => {
 
 app.get('/applications/:id', requireAuth, async (req, res) => {
   try {
-    const application = await getApplicationByID(Number(req.params.id), req.user!.id);
+    const application = await getApplicationByID(req.user!.id, Number(req.params.id));
     if (application === undefined)
       res.status(404).json('id not found');
     else
@@ -58,9 +59,25 @@ app.put('/applications/:id', requireAuth, async (req, res) => {
   }
 });
 
+app.post('/applications/:id/resume', requireAuth, upload.single('resume'), async(req, res) =>{
+  try {
+    if (!req.file)
+      return res.status(400).json('resume path not found');
+    const updatedApplication = await updateResumePath(req.user!.id, Number(req.params.id), req.file.path);
+  
+  if (updatedApplication === undefined)
+      res.status(404).json('id not found');
+  else
+      res.status(200).json(updatedApplication);
+  }
+  catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Unknown error' });
+  }
+});
+
 app.delete('/applications/:id', requireAuth, async (req, res) => {
   try {
-    const result = await deleteApplication(Number(req.params.id), req.user!.id);
+    const result = await deleteApplication(req.user!.id, Number(req.params.id));
     if (result === 1) {
       res.status(200).send('deleted successfully');
     } else if (result === 0) {
