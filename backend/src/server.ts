@@ -75,6 +75,21 @@ app.post('/applications/:id/resume', requireAuth, upload.single('resume'), async
   }
 });
 
+app.get('/applications/:id/resume', requireAuth, async(req, res) => {
+  try {
+    const application = await getApplicationByID(req.user!.id, Number(req.params.id));
+
+    if(application === undefined)
+      return res.status(404).json('application not found');
+    if(application.resume_path === null)
+      return res.status(404).json('resume not uploaded');
+    return res.download(application.resume_path);
+  }
+  catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Unknown error' });
+  }
+});
+
 app.delete('/applications/:id', requireAuth, async (req, res) => {
   try {
     const result = await deleteApplication(req.user!.id, Number(req.params.id));
