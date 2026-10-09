@@ -1,7 +1,7 @@
 import express from "express";
 import bcrypt from 'bcrypt';
 import jwt from "jsonwebtoken";
-import { getAllApplications, getApplicationByID, createApplication, updateApplication, deleteApplication, updateResumePath } from "./db/applications";
+import { getAllApplications, getApplicationByID, createApplication, updateApplication, deleteApplication, updateResumePath, getFollowUps } from "./db/applications";
 import { requireAuth } from "./middleware/auth";
 import { createUser, findUserByEmail } from "./db/users";
 import { upload } from "./middleware/upload";
@@ -19,6 +19,16 @@ app.get('/applications', requireAuth, async (req, res) => {
   }
   catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : 'Unknown error' });
+  }
+});
+
+app.get('/applications/follow-ups', requireAuth, async(req, res) => {
+  try {
+    const result = await getFollowUps(req.user!.id);
+    res.status(200).json(result);
+  }
+  catch(err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Unknown error' })
   }
 });
 
@@ -44,6 +54,8 @@ app.post('/applications', requireAuth, async (req, res) => {
     res.status(500).json({ error: err instanceof Error ? err.message : 'Unknown error' });
   }
 });
+
+
 
 app.put('/applications/:id', requireAuth, async (req, res) => {
   try {

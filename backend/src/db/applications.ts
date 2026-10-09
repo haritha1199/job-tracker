@@ -5,6 +5,14 @@ export async function getAllApplications(userId: number) {
   return result.rows;
 }
 
+export async function getFollowUps(userId: number) {
+  const result = await pool.query(
+    "SELECT * FROM applications WHERE user_id = $1 AND status = 'applied' AND date_applied < now()- interval '7 days'",
+    [userId]
+  );
+  return result.rows;
+}
+
 export async function getApplicationByID(userId: number, id: number) {
   const result = await pool.query('SELECT * FROM applications WHERE id = $1 AND user_id = $2', [id, userId]);
   return result.rows[0];
