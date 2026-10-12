@@ -5,6 +5,7 @@ import { getAllApplications, getApplicationByID, createApplication, updateApplic
 import { requireAuth } from "./middleware/auth";
 import { createUser, findUserByEmail } from "./db/users";
 import { upload } from "./middleware/upload";
+import { autoCheck } from "./jobs/followUps";
 const app = express();
 app.use(express.json());
 
@@ -155,7 +156,9 @@ app.post('/auth/login', async (req, res) => {
   catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : 'Unknown error' });
   }
-})
+});
+
+autoCheck();
 
 app.listen(3000, () => {
   console.log("server is running on port 3000");

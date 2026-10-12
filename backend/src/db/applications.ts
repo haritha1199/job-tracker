@@ -13,6 +13,11 @@ export async function getFollowUps(userId: number) {
   return result.rows;
 }
 
+export async function getAutoFollowUps() {
+  const result = await pool.query("SELECT * FROM applications WHERE status = 'applied' AND date_applied < now() - interval '7 days'");
+  return result;
+}
+
 export async function getApplicationByID(userId: number, id: number) {
   const result = await pool.query('SELECT * FROM applications WHERE id = $1 AND user_id = $2', [id, userId]);
   return result.rows[0];
