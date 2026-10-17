@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import bcrypt from 'bcrypt';
 import jwt from "jsonwebtoken";
 import { getAllApplications, getApplicationByID, createApplication, updateApplication, deleteApplication, updateResumePath, getFollowUps } from "./db/applications";
@@ -7,6 +8,7 @@ import { createUser, findUserByEmail } from "./db/users";
 import { upload } from "./middleware/upload";
 import { autoCheck } from "./jobs/followUps";
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 app.get('/health', (req, res) => {
