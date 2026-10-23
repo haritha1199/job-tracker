@@ -1,5 +1,5 @@
 import { useState } from 'react'
-
+import Applications from './Applications';
 import './App.css'
 import Login from './Login';
 
@@ -10,7 +10,7 @@ function App() {
 
   return (
     <>
-      {token ? <> <p> My applications </p>
+      {token ? <> <Applications />
       <button onClick={() =>
         {
           localStorage.removeItem('token');
