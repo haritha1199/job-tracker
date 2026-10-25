@@ -7,6 +7,7 @@ export default function Applications() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -41,17 +42,33 @@ export default function Applications() {
   return (
     <>
       <h2>My applications</h2>
-      <NewApplication onCreated={(created) => setApplications(prev => [created, ...prev])} />
+      <NewApplication onSaved={(created) => setApplications(prev => [created, ...prev])} />
       {applications.length === 0 ? (<p>No applications yet </p>) :
         (
           <ul>
             {applications.map((app) => (
               <li key={app.id}>
-                {app.company}, {app.role}, {app.status}{' '}
-                {app.date_applied !== null
-                  ? new Date(app.date_applied).toLocaleDateString()
-                  : ''}
-                <button onClick={() => handleDelete(app.id)}>Delete</button>
+                {app.id === editingId ? (
+                  <>
+                    <NewApplication
+                      initial={app}
+                      onSaved={(saved) => {
+                        setApplications(prev => prev.map(a => a.id === saved.id ? saved : a));
+                        setEditingId(null);
+                      }}
+                    />
+                    <button onClick={() => setEditingId(null)}>Cancel</button>
+                  </>
+                ) : (
+                  <>
+                    {app.company}, {app.role}, {app.status}{' '}
+                    {app.date_applied !== null
+                      ? new Date(app.date_applied).toLocaleDateString()
+                      : ''}
+                    <button onClick={() => setEditingId(app.id)}>Edit</button>
+                    <button onClick={() => handleDelete(app.id)}>Delete</button>
+                  </>
+                )}
               </li>
             ))}
           </ul>
