@@ -1,14 +1,17 @@
+export const backendURL = 'http://localhost:3000';
+
 export async function apihelper<T>(method: string, path: string, body?: unknown){
-  const backendURL = 'http://localhost:3000';
   const token = localStorage.getItem('token');
+
+  const isFormData = body instanceof FormData;
 
   const response = await fetch (`${backendURL}${path}`, {
     method: method,
     headers: {
-      "Content-Type": "application/json",
+      ...(body!== undefined && !isFormData && {"Content-Type": "application/json"}),
       ...(token && {"Authorization": `Bearer ${token}`}),
     }, 
-    ...(body!==undefined ? {body: JSON.stringify(body)} : {})
+    ...(body!==undefined ? {body: isFormData? body: JSON.stringify(body)} : {})
   });
   if(response.status === 401 && token)
   {
