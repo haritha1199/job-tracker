@@ -124,12 +124,17 @@ app.delete('/applications/:id', requireAuth, async (req, res) => {
 app.post('/auth/signup', async (req, res) => {
   try {
     const {email, password} = req.body;
+    if(!email || !password)
+      return res.status(400).json({error : 'Email and password required'})
     const hash = await bcrypt.hash(password, 10);
     const createdUser = await createUser(email, hash);
     const {password_hash, ...safeUser} = createdUser;
     res.status(201).json(safeUser);
   }
   catch (err) {
+    if( typeof err === 'object' && err!== null && 'code' in err && err.code === '23505')
+      return res.status(409).json({error: 'Email already registered'});
+    
     res.status(500).json({ error: err instanceof Error ? err.message : 'Unknown error' });
   }
 });
@@ -149,7 +154,7 @@ app.post('/auth/login', async (req, res) => {
         const token = jwt.sign(
           {id: user.id, email: user.email},
           process.env.JWT_SECRET!,
-          {expiresIn: '1h'}
+          {expiresIn: '24h'}
         );
         res.status(200).json({token});
       }
