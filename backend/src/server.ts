@@ -9,7 +9,9 @@ import { upload } from "./middleware/upload";
 import { autoCheck } from "./jobs/followUps";
 const PORT = Number(process.env.PORT) || 3000;
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: [process.env.FRONTEND_URL, 'http://localhost:5173'].filter(Boolean) as string[],
+}));
 app.use(express.json());
 
 app.get('/health', (req, res) => {
