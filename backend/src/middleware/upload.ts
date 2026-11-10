@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+fs.mkdirSync('uploads', { recursive: true });
 import multer from "multer";
 
 const storage = multer.diskStorage({

@@ -7,6 +7,7 @@ import { requireAuth } from "./middleware/auth";
 import { createUser, findUserByEmail } from "./db/users";
 import { upload } from "./middleware/upload";
 import { autoCheck } from "./jobs/followUps";
+const PORT = Number(process.env.PORT) || 3000;
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -167,6 +168,6 @@ app.post('/auth/login', async (req, res) => {
 
 autoCheck();
 
-app.listen(3000, () => {
-  console.log("server is running on port 3000");
+app.listen(PORT, () => {
+  console.log(`server is running on port ${PORT}`);
 });

@@ -1,4 +1,4 @@
-export const backendURL = 'http://localhost:3000';
+export const backendURL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
 export async function apihelper<T>(method: string, path: string, body?: unknown){
   const token = localStorage.getItem('token');
