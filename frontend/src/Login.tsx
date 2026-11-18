@@ -12,7 +12,7 @@ export default function Login({ onLogin }: { onLogin: (token: string) => void })
     setError('');
 
     try {
-      if(mode === 'signup') {
+      if (mode === 'signup') {
         await apihelper('POST', '/auth/signup', { email, password });
       }
       const result = await apihelper<{ token: string }>('POST', '/auth/login', { email, password });
@@ -21,32 +21,48 @@ export default function Login({ onLogin }: { onLogin: (token: string) => void })
       localStorage.setItem('token', token);
       onLogin(token);
     }
-    catch(err) {
+    catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     }
   }
+
   return (
-    <div>
-      {mode==='login'? 'Log In' : 'Create account'}
-    <form onSubmit={handleSubmit}>
-      <label>
-        Email:
-        <input type="email" name="email" value={email} onChange={(e) => setEmail(e.target.value)}/>
-      </label>
+    <div className="auth-wrap">
+      <h1>Job Tracker</h1>
+      <div className="card">
+        <h2 className="section-title">{mode === 'login' ? 'Log in' : 'Create account'}</h2>
 
-      <label>
-        Password:
-        <input type="password" name="password" value={password} onChange={(e) => setPassword(e.target.value)}/>
-      </label>
-      <button type="submit">{mode === 'login' ? 'Login' : 'Sign up'}</button>
-    </form>
+        <form className="auth-form" onSubmit={handleSubmit}>
+          <label className="field">
+            Email
+            <input required type="email" name="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          </label>
 
-    <button type="button" onClick={() => {setMode(mode === 'login' ? 'signup' : 'login');
-    setError('')}}>{mode === 'login' ? 'Need an account? Sign up' : 'Have an account? Log in'}</button>
+          <label className="field">
+            Password
+            <input required type="password" name="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          </label>
 
-     {error && <p>{error}</p>}
+          {error && <p className="error">{error}</p>}
+
+          <button className="btn btn-primary" type="submit">
+            {mode === 'login' ? 'Log in' : 'Sign up'}
+          </button>
+        </form>
+
+        <div className="auth-switch">
+          <button
+            className="btn-link"
+            type="button"
+            onClick={() => {
+              setMode(mode === 'login' ? 'signup' : 'login');
+              setError('');
+            }}
+          >
+            {mode === 'login' ? 'Need an account? Sign up' : 'Have an account? Log in'}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
-
-

@@ -3,7 +3,11 @@ import type { FormEvent } from "react";
 import type { Application } from "./types";
 import { apihelper } from "./api";
 
-export default function NewApplication({ initial, onSaved }: { initial?: Application; onSaved: (app: Application) => void }) {
+export default function NewApplication({ initial, onSaved, onCancel }: {
+  initial?: Application;
+  onSaved: (app: Application) => void;
+  onCancel?: () => void;
+}) {
   const [form, setForm] = useState({
     company: initial?.company ?? '',
     role: initial?.role ?? '',
@@ -58,20 +62,50 @@ export default function NewApplication({ initial, onSaved }: { initial?: Applica
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input required type="text" value={form.company} placeholder="company" onChange={(e) => setForm({ ...form, company: e.target.value })} />
-      <input required type="text" value={form.role} placeholder="role" onChange={(e) => setForm({ ...form, role: e.target.value })} />
-      <input type="text" value={form.link} placeholder="link" onChange={(e) => setForm({ ...form, link: e.target.value })} />
-      <input type="text" value={form.salaryRange} placeholder="Salary Range" onChange={(e) => setForm({ ...form, salaryRange: e.target.value })} />
-      <input type="date" value={form.dateApplied} onChange={(e) => setForm({ ...form, dateApplied: e.target.value })} />
-      <select name="status" id="status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as Application['status'] })}>
-        <option value="applied">Applied</option>
-        <option value="interviewing">Interviewing</option>
-        <option value="rejected">Rejected</option>
-        <option value="offer">Offer</option>
-      </select>
-      <button type="submit">{initial? 'Save' : 'Add'}</button>
-      {error && <p>{error}</p>}
+    <form className="app-form" onSubmit={handleSubmit}>
+      <label className="field">
+        Company
+        <input required type="text" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} />
+      </label>
+
+      <label className="field">
+        Role
+        <input required type="text" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} />
+      </label>
+
+      <label className="field">
+        Link
+        <input type="text" value={form.link} placeholder="https://..." onChange={(e) => setForm({ ...form, link: e.target.value })} />
+      </label>
+
+      <label className="field">
+        Salary range
+        <input type="text" value={form.salaryRange} placeholder="e.g. 90k-110k" onChange={(e) => setForm({ ...form, salaryRange: e.target.value })} />
+      </label>
+
+      <label className="field">
+        Date applied
+        <input type="date" value={form.dateApplied} onChange={(e) => setForm({ ...form, dateApplied: e.target.value })} />
+      </label>
+
+      <label className="field">
+        Status
+        <select name="status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as Application['status'] })}>
+          <option value="applied">Applied</option>
+          <option value="interviewing">Interviewing</option>
+          <option value="rejected">Rejected</option>
+          <option value="offer">Offer</option>
+        </select>
+      </label>
+
+      {error && <p className="error full">{error}</p>}
+
+      <div className="form-actions full">
+        {onCancel && (
+          <button className="btn btn-secondary" type="button" onClick={onCancel}>Cancel</button>
+        )}
+        <button className="btn btn-primary" type="submit">{initial ? 'Save' : 'Add application'}</button>
+      </div>
     </form>
   );
 }

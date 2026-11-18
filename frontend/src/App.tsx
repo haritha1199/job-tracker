@@ -8,16 +8,23 @@ function App() {
     return localStorage.getItem('token');
   });
 
+  if (!token) return <Login onLogin={setToken} />;
+
   return (
     <>
-      {token ? <> <Applications />
-      <button onClick={() =>
-        {
-          localStorage.removeItem('token');
-          setToken(null)
-        }
-      }>Log Out</button>
-      </> : <Login onLogin={setToken} />}
+      <header className="app-header">
+        <h1 className="app-title">Job Tracker</h1>
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={() => {
+            localStorage.removeItem('token');
+            setToken(null);
+          }}
+        >
+          Log out
+        </button>
+      </header>
+      <Applications />
     </>
   )
 }

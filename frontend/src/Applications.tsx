@@ -39,6 +39,7 @@ export default function Applications() {
     try {
       await apihelper<string>('DELETE', `/applications/${id}`);
       setApplications(prev => prev.filter(a => a.id !== id));
+      setFollowUpsId(await fetchFollowUps());
     }
     catch (err) {
       alert(err instanceof Error ? err.message : 'Delete failed')
@@ -49,6 +50,7 @@ export default function Applications() {
     try {
       if (!e.target.files?.[0]) return;
       const file = e.target.files?.[0];
+      e.target.value = '';
 
       const fd = new FormData();
       fd.append('resume', file);
@@ -72,12 +74,14 @@ export default function Applications() {
     if (!response.ok) {
       if (response.status === 404) {
         alert("Resume unavailable");
-        return;
       }
       else if (response.status === 401) {
         alert("Token has expired");
-        return;
       }
+      else {
+        alert("Download failed");
+      }
+      return;
     }
 
     const filename = app.resume_path?.split(/[\\/]/).pop();
@@ -91,55 +95,79 @@ export default function Applications() {
     URL.revokeObjectURL(url);
   }
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>{error}</p>;
+  if (loading) return <p className="muted">Loading...</p>;
+  if (error) return <p className="error">{error}</p>;
   return (
     <>
-      <h2>My applications</h2>
-      <NewApplication onSaved={async (created) => {
-        setApplications(prev => [created, ...prev]);
-        setFollowUpsId(await fetchFollowUps());
-      }} />
-      {applications.length === 0 ? (<p>No applications yet </p>) :
-        (
-          <ul>
-            {applications.map((app) => (
-              <li key={app.id}>
-                {app.id === editingId ? (
-                  <>
-                    <NewApplication
-                      initial={app}
-                      onSaved={async (saved) => {
-                        setApplications(prev => prev.map(a => a.id === saved.id ? saved : a));
-                        setEditingId(null);
-                        setFollowUpsId(await fetchFollowUps());
-                      }}
-                    />
-                    <button onClick={() => setEditingId(null)}>Cancel</button>
-                  </>
-                ) : (
-                  <>
-                    {app.company}, {app.role}, {app.status}{' '}
-                    {app.date_applied !== null
-                      ? new Date(app.date_applied).toLocaleDateString()
-                      : ''}
-                    {followUpsId.has(app.id) ? ' Follow up' : ''}
-                    <input type="file" accept=".pdf, .doc, .docx" onChange={(e) => handleUpload(e, app.id)} />
-                    {app.resume_path !== null
-                      ? <> Resume uploaded <button onClick={() => handleDownload(app)}>Download</button></>
-                      : ' No resume'}
-                    <button onClick={() => setEditingId(app.id)}>Edit</button>
-                    <button onClick={async () => {
-                      handleDelete(app.id);
-                      setFollowUpsId(await fetchFollowUps());
-                    }}>Delete</button>
-                  </>
-                )}
-              </li>
-            ))}
-          </ul>
-        )
-      }
+      <section className="card">
+        <h2 className="section-title">Add application</h2>
+        <NewApplication onSaved={async (created) => {
+          setApplications(prev => [created, ...prev]);
+          setFollowUpsId(await fetchFollowUps());
+        }} />
+      </section>
+
+      <h2 className="section-title list-title">My applications</h2>
+
+      {applications.length === 0 ? (
+        <p className="empty card">No applications yet. Add your first one above.</p>
+      ) : (
+        <ul className="app-list">
+          {applications.map((app) => (
+            <li key={app.id} className="card">
+              {app.id === editingId ? (
+                <NewApplication
+                  initial={app}
+                  onSaved={async (saved) => {
+                    setApplications(prev => prev.map(a => a.id === saved.id ? saved : a));
+                    setEditingId(null);
+                    setFollowUpsId(await fetchFollowUps());
+                  }}
+                  onCancel={() => setEditingId(null)}
+                />
+              ) : (
+                <>
+                  <div className="app-top">
+                    <div>
+                      <div className="company">{app.company}</div>
+                      <div className="muted">{app.role}</div>
+                    </div>
+                    <div className="badges">
+                      <span className={`badge badge-${app.status}`}>{app.status}</span>
+                      {followUpsId.has(app.id) && <span className="badge badge-followup">Follow up</span>}
+                    </div>
+                  </div>
+
+                  <div className="app-meta">
+                    {app.date_applied !== null && (
+                      <span>Applied {new Date(app.date_applied).toLocaleDateString()}</span>
+                    )}
+                    {app.salary_range && <span>{app.salary_range}</span>}
+                    {app.link && <a href={app.link} target="_blank" rel="noreferrer">View posting</a>}
+                  </div>
+
+                  <div className="app-actions">
+                    <span className="resume-status">
+                      {app.resume_path !== null ? 'Resume uploaded' : 'No resume'}
+                    </span>
+                    {app.resume_path !== null && (
+                      <button className="btn btn-secondary btn-sm" onClick={() => handleDownload(app)}>Download</button>
+                    )}
+                    <label className="btn btn-secondary btn-sm">
+                      {app.resume_path !== null ? 'Replace' : 'Upload resume'}
+                      <input type="file" hidden accept=".pdf,.doc,.docx" onChange={(e) => handleUpload(e, app.id)} />
+                    </label>
+                    <div className="actions-right">
+                      <button className="btn btn-secondary btn-sm" onClick={() => setEditingId(app.id)}>Edit</button>
+                      <button className="btn btn-danger btn-sm" onClick={() => handleDelete(app.id)}>Delete</button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </>
   )
 }
